@@ -155,19 +155,6 @@ void StepperDIRK<Scalar>::setObserver(
   this->isInitialized_ = false;
 }
 #endif
-template<class Scalar>
-void StepperExplicitRK<Scalar>::setAppAction(
-  Teuchos::RCP<StepperRKAppAction<Scalar> > appAction)
-{
-  if (appAction == Teuchos::null) {
-    // Create default appAction
-    stepperRKAppAction_ =
-      Teuchos::rcp(new StepperRKModifierDefault<Scalar>());
-  } else {
-    stepperRKAppAction_ = appAction;
-  }
-  this->isInitialized_ = false;
-}
 
 
 template<class Scalar>
@@ -233,7 +220,7 @@ void StepperDIRK<Scalar>::takeStep(
     this->stepperObserver_->observeBeginTakeStep(solutionHistory, *this);
 #endif
     RCP<StepperDIRK<Scalar> > thisStepper = Teuchos::rcpFromRef(*this);
-    stepperRKAppAction_->execute(solutionHistory, thisStepper,
+    this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
       StepperRKAppAction<Scalar>::ACTION_LOCATION::BEGIN_STEP);
 
     RCP<SolutionState<Scalar> > currentState=solutionHistory->getCurrentState();
@@ -282,7 +269,7 @@ void StepperDIRK<Scalar>::takeStep(
         }
       }
 
-      stepperRKAppAction_->execute(solutionHistory, thisStepper,
+      this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
         StepperRKAppAction<Scalar>::ACTION_LOCATION::BEGIN_STAGE);
 
       Scalar ts = time + c(i)*dt;
@@ -326,7 +313,7 @@ void StepperDIRK<Scalar>::takeStep(
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
         this->stepperObserver_->observeBeforeSolve(solutionHistory, *this);
 #endif
-        stepperRKAppAction_->execute(solutionHistory, thisStepper,
+        this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
           StepperRKAppAction<Scalar>::ACTION_LOCATION::BEFORE_SOLVE);
 
         sStatus = this->solveImplicitODE(this->stageX_, stageXDot_[i], ts, p);
@@ -336,7 +323,7 @@ void StepperDIRK<Scalar>::takeStep(
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
         this->stepperObserver_->observeAfterSolve(solutionHistory, *this);
 #endif
-        stepperRKAppAction_->execute(solutionHistory, thisStepper,
+        this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
           StepperRKAppAction<Scalar>::ACTION_LOCATION::AFTER_SOLVE);
 
         timeDer->compute(this->stageX_, stageXDot_[i]);
@@ -344,9 +331,9 @@ void StepperDIRK<Scalar>::takeStep(
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
       this->stepperObserver_->observeEndStage(solutionHistory, *this);
 #endif
-      stepperRKAppAction_->execute(solutionHistory, thisStepper,
+      this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
         StepperRKAppAction<Scalar>::ACTION_LOCATION::BEFORE_EXPLICIT_EVAL);
-      stepperRKAppAction_->execute(solutionHistory, thisStepper,
+      this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
         StepperRKAppAction<Scalar>::ACTION_LOCATION::END_STAGE);
     }
 
@@ -401,7 +388,7 @@ void StepperDIRK<Scalar>::takeStep(
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
     this->stepperObserver_->observeEndTakeStep(solutionHistory, *this);
 #endif
-    stepperRKAppAction_->execute(solutionHistory, thisStepper,
+    this->stepperRKAppAction_->execute(solutionHistory, thisStepper,
       StepperRKAppAction<Scalar>::ACTION_LOCATION::END_STEP);
   }
   // reset the stage number
@@ -441,7 +428,7 @@ void StepperDIRK<Scalar>::describe(
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
   out << "  stepperObserver_    = " << stepperObserver_ << std::endl;
 #endif
-  out << "  stepperRKAppAction_= " << stepperRKAppAction_ << std::endl;
+  out << "  stepperRKAppAction_= " << this->stepperRKAppAction_ << std::endl;
   out << "  xTilde_             = " << xTilde_ << std::endl;
   out << "  stageX_             = " << this->stageX_ << std::endl;
   out << "  stageXDot_.size()   = " << stageXDot_.size() << std::endl;
@@ -477,7 +464,7 @@ bool StepperDIRK<Scalar>::isValidSetup(Teuchos::FancyOStream & out) const
     out << "The observer is not set!\n";
   }
 #endif
-  if (stepperRKAppAction_ == Teuchos::null) {
+  if (this->stepperRKAppAction_ == Teuchos::null) {
     isValidSetup = false;
     out << "The AppAction is not set!\n";
   }

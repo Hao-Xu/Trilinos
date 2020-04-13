@@ -17,7 +17,6 @@
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
   #include "Tempus_StepperRKObserverComposite.hpp"
 #endif
-#include "Tempus_StepperRKAppAction.hpp"
 
 
 namespace Tempus {
@@ -166,12 +165,6 @@ public:
     virtual Teuchos::RCP<StepperObserver<Scalar> > getObserver() const
     { return this->stepperObserver_; }
 #endif
-    virtual void setAppAction(
-      Teuchos::RCP<StepperRKAppAction<Scalar> > appAction);
-
-    virtual Teuchos::RCP<StepperRKAppAction<Scalar> > getAppAction() const
-    { return stepperRKAppAction_; }
-
     virtual Teuchos::RCP<const RKButcherTableau<Scalar> > getTableau()
     { return tableau_; }
 
@@ -288,7 +281,6 @@ protected:
 #ifndef TEMPUS_HIDE_DEPRECATED_CODE
   Teuchos::RCP<StepperRKObserverComposite<Scalar> >      stepperObserver_;
 #endif
-  Teuchos::RCP<StepperRKAppAction<Scalar> >              stepperRKAppAction_;
 
   // For Embedded RK
   bool useEmbedded_;
